@@ -5,6 +5,7 @@ namespace TrialBookingApp.Web.Domain.Enums
         Success,
         ClassFull,
         NotFound,
-        AlreadyProcessed
+        AlreadyProcessed,
+        PaymentFailed
     }
 }

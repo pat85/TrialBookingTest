@@ -56,11 +56,13 @@ namespace TrialBookingApp.Web.Controllers
             {
                 PaymentCompletionResult.Success => "BookingMessage",
                 PaymentCompletionResult.ClassFull => "BookingError",
+                PaymentCompletionResult.PaymentFailed => "BookingError",
                 _ => "BookingError"
             }] = result switch
             {
                 PaymentCompletionResult.Success => "Congratulations! Your booking has been confirmed.",
                 PaymentCompletionResult.ClassFull => "The class is full. Your payment could not be completed.",
+                PaymentCompletionResult.PaymentFailed => "Your payment could not be completed.",
                 _ => "Payment for this booking has already been processed."
             };
 

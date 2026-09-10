@@ -4,6 +4,7 @@ using TrialBookingApp.Web.DataAccess;
 using TrialBookingApp.Web.Domain.Entities;
 using TrialBookingApp.Web.Domain.Enums;
 using TrialBookingApp.Web.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace TrialBookingApp.Web.Business.Services
 {
@@ -112,18 +113,31 @@ namespace TrialBookingApp.Web.Business.Services
                 return PaymentCompletionResult.AlreadyProcessed;
             }
 
-            var trialClass = await _trialClassRepository
-                .GetByIdAsync(booking.TrialClassId);
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
+            var trialClass = await _context.TrialClasses.FromSqlInterpolated($@"
+                SELECT *
+                FROM TrialClasses WITH (UPDLOCK, ROWLOCK)
+                WHERE TrialClassId = {booking.TrialClassId}").SingleOrDefaultAsync();
+
+            // var trialClass = await _trialClassRepository.GetByIdAsync(booking.TrialClassId);
 
             if (trialClass is null)
             {
+                await transaction.RollbackAsync();
                 return PaymentCompletionResult.NotFound;
             }
 
+            if (trialClass.ConfirmedBookingCount >= trialClass.TrialClassCapacity)
+            {
+                await transaction.RollbackAsync();
+                return PaymentCompletionResult.ClassFull;
+            }
+
+
             const decimal amount = 0m;
             var canComplete = trialClass.ConfirmedBookingCount < trialClass.TrialClassCapacity;
-            var paymentStatus = await _paymentService
-                .ProcessPaymentAsync(amount, canComplete);
+            var paymentStatus = await _paymentService.ProcessPaymentAsync(amount, canComplete);
 
             var paymentAttempt = new PaymentAttempt
             {
@@ -147,6 +161,7 @@ namespace TrialBookingApp.Web.Business.Services
                 _trialClassRepository.Update(trialClass);
 
                 await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
 
                 return PaymentCompletionResult.Success;
             }
@@ -155,8 +170,9 @@ namespace TrialBookingApp.Web.Business.Services
             _bookingRepository.Update(booking);
 
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
-            return PaymentCompletionResult.ClassFull;
+            return PaymentCompletionResult.PaymentFailed;
         }
 
         public async Task<bool> CancelBookingAsync(Guid bookingId)
