@@ -1,0 +1,50 @@
+@model List<TrialBookingApp.Web.Models.BookingDetailsViewModel>
+
+@{
+    ViewData["Title"] = "Bookings";
+}
+
+<div class="mt-4">
+    <h1>Bookings</h1>
+
+    @if (Model.Count == 0)
+    {
+        <p class="mt-4">No bookings have been made.</p>
+    }
+    else
+    {
+        <div class="table-responsive mt-4">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th scope="col">Booking ID</th>
+                        <th scope="col">Parent</th>
+                        <th scope="col">Student</th>
+                        <th scope="col">Class</th>
+                        <th scope="col">Booking Status</th>
+                        <th scope="col">Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var booking in Model)
+                    {
+                        <tr>
+                            <td>@booking.BookingId</td>
+                            <td>@booking.ParentName</td>
+                            <td>@booking.StudentName</td>
+                            <td>@booking.TrialClassName</td>
+                            <td>@booking.Status</td>
+                            <td>
+                                <a asp-action="Details"
+                                   asp-route-id="@booking.BookingId"
+                                   class="btn btn-sm btn-outline-primary">
+                                    Open
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

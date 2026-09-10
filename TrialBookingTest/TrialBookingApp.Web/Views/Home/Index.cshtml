@@ -1,0 +1,119 @@
+﻿@model TrialBookingApp.Web.Models.HomeViewModel
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="row justify-content-center mt-4">
+    @if (TempData["BookingWarning"] is string bookingWarning)
+    {
+        <div class="alert alert-warning" role="alert">@bookingWarning</div>
+    }
+
+    @if (TempData["BookingError"] is string bookingError)
+    {
+        <div class="alert alert-danger" role="alert">@bookingError</div>
+    }
+
+    <form asp-action="SubmitBooking" method="post" class="row g-3">
+        @Html.AntiForgeryToken()
+        <div class="col-md-6">
+            <label for="parentId" class="form-label">Parent</label>
+            <select id="parentId" name="parentId" class="form-select">
+                <option value="">Select a parent</option>
+                @foreach (var parent in Model.Parents)
+                {
+                    <option value="@parent.ParentId">@parent.ParentName</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label for="studentId" class="form-label">Child</label>
+            <select id="studentId" name="studentId" class="form-select" required disabled>
+                <option value="">Select a parent first</option>
+            </select>
+        </div>
+
+        <div class="col-12 mt-4">
+            <h2>Trial classes</h2>
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th scope="col">Select</th>
+                            <th scope="col">Class</th>
+                            <th scope="col">Starts</th>
+                            <th scope="col">Ends</th>
+                            <th scope="col">Capacity</th>
+                            <th scope="col">Confirmed Participants</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var trialClass in Model.TrialClasses)
+                        {
+                            <tr>
+                                <td>
+                                    <input type="radio"
+                                           class="form-check-input"
+                                           name="trialClassId"
+                                           value="@trialClass.TrialClassId"
+                                           required
+                                           aria-label="Select @trialClass.TrialClassTitle" />
+                                </td>
+                                <td>@trialClass.TrialClassTitle</td>
+                                <td>@trialClass.TrialClassStartDate.ToString("g")</td>
+                                <td>@trialClass.TrialClassEndDate.ToString("g")</td>
+                                <td>@trialClass.TrialClassCapacity</td>
+                                <td>@trialClass.ConfirmedBookingCount</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit booking</button>
+        </div>
+    </form>
+    </div>
+
+@section Scripts {
+    <script>
+        document.getElementById('parentId').addEventListener('change', async function () {
+            const studentSelect = document.getElementById('studentId');
+            const parentId = this.value;
+
+            studentSelect.replaceChildren();
+
+            if (!parentId) {
+                studentSelect.disabled = true;
+                studentSelect.add(new Option('Select a parent first', ''));
+                return;
+            }
+
+            studentSelect.disabled = true;
+            studentSelect.add(new Option('Loading children...', ''));
+
+            try {
+                const response = await fetch(`@Url.Action("GetChildren", "Home")?parentId=${encodeURIComponent(parentId)}`);
+
+                if (!response.ok) {
+                    throw new Error('Unable to load children.');
+                }
+
+                const children = await response.json();
+                studentSelect.replaceChildren();
+                studentSelect.add(new Option(
+                    children.length ? 'Select a child' : 'No children found',
+                    ''));
+
+                children.forEach(child => {
+                    studentSelect.add(new Option(child.name, child.id));
+                });
+
+                studentSelect.disabled = children.length === 0;
+            } catch {
+                studentSelect.replaceChildren();
+                studentSelect.add(new Option('Unable to load children', ''));
+            }
+        });
+    </script>
+}

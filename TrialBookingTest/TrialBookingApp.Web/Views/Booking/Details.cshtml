@@ -1,0 +1,64 @@
+@model TrialBookingApp.Web.Models.BookingDetailsViewModel
+
+@{
+    ViewData["Title"] = "Booking details";
+}
+
+<div class="mt-4">
+    <h1>Booking details</h1>
+
+    @if (TempData["BookingMessage"] is string bookingMessage)
+    {
+        <div class="alert alert-success" role="alert">@bookingMessage</div>
+    }
+
+    @if (TempData["BookingError"] is string bookingError)
+    {
+        <div class="alert alert-warning" role="alert">@bookingError</div>
+    }
+
+    <dl class="row mt-4">
+        <dt class="col-sm-4">Booking ID</dt>
+        <dd class="col-sm-8">@Model.BookingId</dd>
+
+        <dt class="col-sm-4">Parent</dt>
+        <dd class="col-sm-8">@Model.ParentName</dd>
+
+        <dt class="col-sm-4">Student</dt>
+        <dd class="col-sm-8">@Model.StudentName</dd>
+
+        <dt class="col-sm-4">Class</dt>
+        <dd class="col-sm-8">@Model.TrialClassName</dd>
+
+        <dt class="col-sm-4">Status</dt>
+        <dd class="col-sm-8">@Model.Status</dd>
+    </dl>
+
+    <div class="d-flex gap-2">
+        @if (Model.CanCompletePayment)
+        {
+            <form asp-action="CompletePayment" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.BookingId" />
+                <button type="submit" class="btn btn-primary">Complete Payment</button>
+            </form>
+        }
+        else
+        {
+            <button type="button" class="btn btn-primary" disabled>Complete Payment</button>
+        }
+
+        @if (Model.CanCancelBooking)
+        {
+            <form asp-action="CancelBooking" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.BookingId" />
+                <button type="submit" class="btn btn-outline-danger">Cancel Booking</button>
+            </form>
+        }
+        else
+        {
+            <button type="button" class="btn btn-outline-danger" disabled>Cancel Booking</button>
+        }
+    </div>
+</div>
