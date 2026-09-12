@@ -3,7 +3,7 @@ A minimal trial class booking system as a Proof of Concept.
 
 ## Setup Instructions
 
-Setup instruction: https://github.com/pat85/TrialBookingTest/blob/main/setup-instruction.docx
+Setup instruction: https://docs.google.com/document/d/1zMNM8jVWWhsovsmn0-uZ6ky8YAMF1EwQ/edit?usp=sharing&ouid=102683734393076231365&rtpof=true&sd=true
 
 However, to make things easy, I alerady setup a sample in a server: https://app.dds.co.id/trialbooking
 
