@@ -73,10 +73,6 @@ is not sufficient on its own because two concurrent requests can both observe th
 
 Using SQL Server locking places the concurrency guarantee at the shared resource itself. This also works if multiple application instances are running, unlike an in-process C# `lock`.
 
-### Tradeoffs
-
-The main tradeoff is that the database lock is held while the mock payment operation is executed. This intentionally serializes payment completion attempts for the same trial class.
-
 ---
 
 ## Backend Design Requirements
