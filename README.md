@@ -121,17 +121,9 @@ The application uses five main entities:
 
 All entities use GUID primary keys.
 
-The relationships are:
+Entity Relationship Diagram:
 
-```text
-Parent
-  │
-  └──< Student
-          │
-          └──< Booking >── TrialClass
-                    │
-                    └──< PaymentAttempt
-```
+<img width="1800" height="1250" alt="TrialBookingDb_ERD" src="https://github.com/pat85/TrialBookingTest/blob/main/SQL/TrialBookingDb_ERD.png" />
 
 `TrialClass` contains the class capacity and the current number of confirmed bookings:
 
