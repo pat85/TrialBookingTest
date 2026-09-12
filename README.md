@@ -1,9 +1,19 @@
 #Trial Booking Web Test
 A minimal trial class booking system as a Proof of Concept.
 
+## Setup Instructions
+
 Setup instruction: https://github.com/pat85/TrialBookingTest/blob/main/setup-instruction.docx
 
 However, to make things easy, I alerady setup a sample in a server: https://app.dds.co.id/trialbooking
+
+## What was built
+
+A web based application to book trial classes in a course. The app was built using ASP.NET MVC and SQL Server
+
+## Time Spent
+
+This is a bit difficult to measure because I worked on it within chunks of my available free time. However, if I have to estimate, I believe I spent like a bit more than 4 hours to complete since I just realized I spent a little to much on achieving near ideal architecture which is not really necessary in this test.
 
 ## Required Technical Scenario: Last-Seat Race
 
@@ -76,6 +86,28 @@ Using SQL Server locking places the concurrency guarantee at the shared resource
 ---
 
 ## Backend Design Requirements
+
+### General Architecture
+
+The application uses a simple layered architecture built with ASP.NET Core MVC and Entity Framework Core with SQL Server.
+
+MVC Controllers
+      ↓
+Business Services
+      ↓
+Data Access / Repositories
+      ↓
+Entity Framework Core
+      ↓
+SQL Server
+
+- Controllers handle HTTP requests, basic input handling, and responses.
+- Business Services contain the booking and payment business rules, including booking status transitions and seat availability.
+- Repositories/Data Access handle database operations through Entity Framework Core.
+- Domain Entities represent the core data model such as Student, TrialClass, Booking, and PaymentAttempt.
+- SQL Server provides persistent storage and database-level constraints.
+
+I chose this structure to keep the application simple while separating HTTP concerns, business logic, and data access. In particular, keeping the booking logic in a service makes the concurrency-sensitive behavior easier to test independently from the MVC layer. I deliberately avoided more complex design patterns such as CQRS, MediatR, or a separate API/frontend application because they would add complexity without providing significant value for the relatively small scope of this take-home exercise.
 
 ### Data Model
 
@@ -252,21 +284,15 @@ If this system were deployed to production, I would monitor both **business-leve
 * Payment success/failure rate
 * Number of cancelled bookings
 * Number of duplicate booking attempts
-* Number of attempts to book already-full classes
-* Number of classes reaching full capacity
 
 These metrics would help identify whether users are successfully completing the booking flow and whether particular classes or time slots have unusual demand.
 
 ### Concurrency and Data Integrity
 
-I would specifically monitor:
-
 * Attempts to confirm bookings when a class is already full
 * Database constraint violations related to duplicate bookings
 * Transaction/deadlock errors
 * Unexpected differences between `ConfirmedBookingCount` and the actual number of confirmed bookings
-
-The last item is particularly important because `ConfirmedBookingCount` is maintained as a denormalized value for efficient seat availability checks.
 
 ### Payment Reliability
 
@@ -274,7 +300,6 @@ For a real payment provider, I would monitor:
 
 * Payment provider success/failure rates
 * Payment timeout/error rates
-* Payment attempts without a corresponding booking state transition
 * Confirmed bookings without a successful payment
 * Successful payments without a confirmed booking
 
@@ -303,15 +328,5 @@ If more development time were available, I would prioritize improvements in the 
 1. Strengthen the Payment Workflow: The current payment integration is intentionally mocked. The next step would be integrating a real payment provider with an idempotent payment workflow and webhook handling.
 2. Add Comprehensive Concurrency Tests: users competing for one or more remaining seats, concurrent duplicate booking attempts, payment failures
 3. Add Authentication and Authorization: I would introduce authentication for parents and role-based authorization for administrative/teacher functionality. Parents should only be able to access their own children's bookings, while teachers/administrators should have access to the appropriate class roster information.
-4. Add Observability: I would add structured logging, metrics, and tracing around:
-
-* Booking creation
-* Payment attempts
-* Booking confirmation
-* Seat allocation failures
-* Concurrency conflicts
-* Payment-provider interactions
-
-This would make production failures and booking/payment inconsistencies easier to diagnose.
-
+4. Add Observability: I would add structured logging, metrics, and tracing around booking and payment activities
 5. Improve the User Experience: finally, I would improve the UI around the reliability scenarios. For example, if a user reaches payment but another user has already taken the final seat, the UI should clearly explain that the class is no longer available rather than presenting a generic payment error.
